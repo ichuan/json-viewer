@@ -9,17 +9,17 @@ const App: React.FC = () => {
   const [jsonInput, setJsonInput] = useState<string>('');
   const [parsedResult, setParsedResult] = useState(parseJson(''));
 
-  // 使用 useCallback 优化解析函数
+  // Optimize parse function with useCallback
   const parseJsonCallback = useCallback((input: string) => {
     const result = parseJson(input);
     setParsedResult(result);
   }, []);
 
-  // 使用防抖优化实时预览
+  // Use debounce to optimize real-time preview
   useEffect(() => {
     const timer = setTimeout(() => {
       parseJsonCallback(jsonInput);
-    }, 300); // 300ms 防抖延迟
+    }, 300); // 300ms debounce delay
 
     return () => clearTimeout(timer);
   }, [jsonInput, parseJsonCallback]);
@@ -29,7 +29,7 @@ const App: React.FC = () => {
       <Header />
 
       <main className="main-content">
-        {/* 左侧输入区域 */}
+        {/* Left input area */}
         <div className="left-panel">
           <JsonInput
             value={jsonInput}
@@ -37,7 +37,7 @@ const App: React.FC = () => {
           />
         </div>
 
-        {/* 右侧预览区域 */}
+        {/* Right preview area */}
         <div className="right-panel">
           <JsonPreview result={parsedResult} />
         </div>

@@ -36,7 +36,7 @@ export const JsonPreview: React.FC<JsonPreviewProps> = ({ result }) => {
   const getAllPaths = useCallback((obj: any, prefix = ''): string[] => {
     const paths: string[] = [];
 
-    // 如果根对象是对象或数组且不是null，添加根路径
+    // Add root path if the root object is an object or array and not null
     if ((typeof obj === 'object' && obj !== null) || Array.isArray(obj)) {
       if (prefix) {
         paths.push(prefix);
@@ -75,6 +75,24 @@ export const JsonPreview: React.FC<JsonPreviewProps> = ({ result }) => {
   }, [allPaths]);
 
   if (!result.success) {
+    // If it's empty input, show friendly prompt instead of error
+    if (result.error === 'Input cannot be empty') {
+      return (
+        <div style={{
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#9ca3af',
+          fontSize: '0.875rem',
+          fontFamily: 'SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace'
+        }}>
+          Please paste or enter JSON data in the left input field...
+        </div>
+      );
+    }
+
+    // Show error message for other parsing errors
     return (
       <div className="error-container">
         <div className="error-box">
@@ -83,7 +101,7 @@ export const JsonPreview: React.FC<JsonPreviewProps> = ({ result }) => {
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
             <div>
-              <h3 className="error-title">解析错误</h3>
+              <h3 className="error-title">Parse Error</h3>
               <p className="error-message">{result.error}</p>
             </div>
           </div>
@@ -244,7 +262,7 @@ export const JsonPreview: React.FC<JsonPreviewProps> = ({ result }) => {
           </span>
           {result.isJsonLines && (
             <span className="json-lines-badge">
-              {Array.isArray(result.data) ? result.data.length : 0} 行
+              {Array.isArray(result.data) ? result.data.length : 0} lines
             </span>
           )}
           {allPaths.length > 0 && (
@@ -252,7 +270,7 @@ export const JsonPreview: React.FC<JsonPreviewProps> = ({ result }) => {
               <button
                 onClick={expandAll}
                 className="collapse-button"
-                title="展开全部"
+                title="Expand All"
                 style={{
                   background: 'none',
                   border: '1px solid #d1d5db',
@@ -263,12 +281,12 @@ export const JsonPreview: React.FC<JsonPreviewProps> = ({ result }) => {
                   color: '#374151'
                 }}
               >
-                展开
+                Expand
               </button>
               <button
                 onClick={collapseAll}
                 className="collapse-button"
-                title="折叠全部"
+                title="Collapse All"
                 style={{
                   background: 'none',
                   border: '1px solid #d1d5db',
@@ -279,7 +297,7 @@ export const JsonPreview: React.FC<JsonPreviewProps> = ({ result }) => {
                   color: '#374151'
                 }}
               >
-                折叠
+                Collapse
               </button>
             </div>
           )}
@@ -287,7 +305,7 @@ export const JsonPreview: React.FC<JsonPreviewProps> = ({ result }) => {
         <button
           onClick={handleCopy}
           className="copy-button"
-          title="复制格式化的 JSON"
+          title="Copy formatted JSON"
         >
           {copySuccess ? (
             <>
@@ -295,14 +313,14 @@ export const JsonPreview: React.FC<JsonPreviewProps> = ({ result }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20 6L9 17l-5-5" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20 6H9" />
               </svg>
-              已复制
+              Copied
             </>
           ) : (
             <>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 4v16l-4-4m4 4H4" />
               </svg>
-              复制
+              Copy
             </>
           )}
         </button>

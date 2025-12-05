@@ -17,7 +17,7 @@ describe('App Component', () => {
   });
 
   test('renders header with JSON Viewer text', () => {
-    mockParseJson.mockReturnValue({ success: false, data: null, error: '输入不能为空' });
+    mockParseJson.mockReturnValue({ success: false, data: null, error: 'Input cannot be empty' });
 
     render(<App />);
 
@@ -25,19 +25,20 @@ describe('App Component', () => {
   });
 
   test('renders footer with copyright', () => {
-    mockParseJson.mockReturnValue({ success: false, data: null, error: '输入不能为空' });
+    mockParseJson.mockReturnValue({ success: false, data: null, error: 'Input cannot be empty' });
 
     render(<App />);
 
-    expect(screen.getByText('© 2024 JSON Viewer. All rights reserved.')).toBeInTheDocument();
+    const currentYear = new Date().getFullYear();
+    expect(screen.getByText(`© ${currentYear} JSON Viewer. All rights reserved.`)).toBeInTheDocument();
   });
 
   test('renders input and preview areas', () => {
-    mockParseJson.mockReturnValue({ success: false, data: null, error: '输入不能为空' });
+    mockParseJson.mockReturnValue({ success: false, data: null, error: 'Input cannot be empty' });
 
     render(<App />);
 
-    expect(screen.getByLabelText('JSON 输入')).toBeInTheDocument();
+    expect(screen.getByLabelText('JSON Input')).toBeInTheDocument();
   });
 
   test('updates preview when valid JSON is entered', async () => {
@@ -50,7 +51,7 @@ describe('App Component', () => {
 
     render(<App />);
 
-    const textarea = screen.getByLabelText('JSON 输入');
+    const textarea = screen.getByLabelText('JSON Input');
     fireEvent.change(textarea, { target: { value: '{"name": "John", "age": 30}' } });
 
     // Wait for debounce to complete
@@ -63,12 +64,12 @@ describe('App Component', () => {
     mockParseJson.mockReturnValue({
       success: false,
       data: null,
-      error: 'JSON 解析失败'
+      error: 'JSON parsing failed'
     });
 
     render(<App />);
 
-    const textarea = screen.getByLabelText('JSON 输入');
+    const textarea = screen.getByLabelText('JSON Input');
     fireEvent.change(textarea, { target: { value: 'invalid json' } });
 
     // Wait for debounce to complete
@@ -78,12 +79,12 @@ describe('App Component', () => {
   });
 
   test('clear button works correctly', () => {
-    mockParseJson.mockReturnValue({ success: false, data: null, error: '输入不能为空' });
+    mockParseJson.mockReturnValue({ success: false, data: null, error: 'Input cannot be empty' });
 
     render(<App />);
 
-    const textarea = screen.getByLabelText('JSON 输入');
-    const clearButton = screen.getByText('清空');
+    const textarea = screen.getByLabelText('JSON Input');
+    const clearButton = screen.getByText('Clear');
 
     // First enter some text
     fireEvent.change(textarea, { target: { value: '{"test": "data"}' } });
@@ -95,15 +96,15 @@ describe('App Component', () => {
   });
 
   test('input area uses full height after removing stats', () => {
-    mockParseJson.mockReturnValue({ success: false, data: null, error: '输入不能为空' });
+    mockParseJson.mockReturnValue({ success: false, data: null, error: 'Input cannot be empty' });
 
     render(<App />);
 
-    const textarea = screen.getByLabelText('JSON 输入');
+    const textarea = screen.getByLabelText('JSON Input');
     expect(textarea).toBeInTheDocument();
 
     // Verify that character stats are no longer displayed
-    expect(screen.queryByText(/字符/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/行/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/characters/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/lines/)).not.toBeInTheDocument();
   });
 });

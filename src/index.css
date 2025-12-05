@@ -44,7 +44,7 @@ html, body {
 .left-panel,
 .right-panel {
   width: 50%;
-  flex: none;
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -63,13 +63,40 @@ html, body {
 }
 
 .header-content {
-  max-width: 1280px;
   margin: 0 auto;
   padding: 0 16px;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 64px;
+}
+
+.header-actions {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+}
+
+.github-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.github-link:hover {
+  color: #111827;
+  background-color: #f9fafb;
 }
 
 .logo {

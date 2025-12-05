@@ -6,53 +6,53 @@ export interface ParsedJsonResult {
 }
 
 /**
- * 安全处理转义字符，主要处理 Python 日志中的换行符，保持 JSON 字符串内的转义不变
+ * Safely handle escape characters, primarily processing newlines from Python logs while preserving escapes within JSON strings
  */
 function safeHandleEscapes(jsonString: string): string {
-  // 首先检查这个字符串是否看起来像有效的 JSON
+  // First check if this string looks like valid JSON
   const trimmed = jsonString.trim();
   if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
       (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-    // 尝试直接解析，如果成功就不需要处理转义
+    // Try to parse directly, if successful no escape handling is needed
     try {
       JSON.parse(trimmed);
-      return trimmed; // 如果解析成功，返回原样
+      return trimmed; // Return as-is if parsing succeeds
     } catch (e) {
-      // 解析失败，继续处理
+      // Parsing failed, continue with processing
     }
   }
 
-  // 只处理明显的 Python 日志转义（真实的换行符，而不是字符串内的）
+  // Only handle obvious Python log escapes (actual newlines, not within strings)
   let result = jsonString;
 
-  // 只处理行尾和行首的换行符，不处理字符串内的
+  // Only handle newlines at line start/end, not within strings
   result = result.replace(/\r?\n/g, ' ');
 
   return result;
 }
 
 /**
- * 尝试修复不完整的 JSON 字符串
+ * Attempt to fix incomplete JSON strings
  */
 function attemptJsonFix(jsonString: string): string {
   let fixed = jsonString.trim();
 
-  // 移除注释
+  // Remove comments
   fixed = fixed.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
 
-  // 使用安全的方法处理转义字符
+  // Use safe method to handle escape characters
   fixed = safeHandleEscapes(fixed);
 
-  // 移除尾随逗号
+  // Remove trailing commas
   fixed = fixed.replace(/,\s*([}\]])/g, '$1');
 
-  // 修复未引用的键名
+  // Fix unquoted keys
   fixed = fixed.replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":');
 
-  // 只有在需要时才尝试修复单引号为双引号（更保守的方法）
-  // 检查是否可能包含单引号包围的字符串（而非JSON字符串内的单引号）
-  if (!fixed.includes('"') && (fixed.includes("'") || fixed.includes("‘") || fixed.includes("’"))) {
-    // 看起来像是用单引号包围的JSON，尝试修复
+  // Only attempt to fix single quotes to double quotes when needed (more conservative approach)
+  // Check if it might contain single-quoted strings (not single quotes within JSON strings)
+  if (!fixed.includes('"') && (fixed.includes("'") || fixed.includes("'") || fixed.includes("'"))) {
+    // Looks like JSON wrapped in single quotes, try to fix
     fixed = fixed.replace(/'/g, '"');
   }
 
@@ -60,19 +60,19 @@ function attemptJsonFix(jsonString: string): string {
 }
 
 /**
- * 清理和处理从 Python 日志拷贝的原始 JSON Lines 数据
+ * Clean and process raw JSON Lines data copied from Python logs
  */
 function cleanRawJsonLines(jsonString: string): string[] {
-  // 首先尝试按实际换行符分割
+  // First try to split by actual newlines
   let lines = jsonString.split(/\r?\n/);
   let cleanedLines: string[] = [];
 
-  // 如果只有一行，并且包含转义的换行符，按转义的换行符分割
+  // If only one line and contains escaped newlines, split by escaped newlines
   if (lines.length === 1 && jsonString.includes('\\n')) {
-    // 处理单行中包含多个 JSON 对象的情况（如你的 example_json.txt）
+    // Handle case where single line contains multiple JSON objects (like example_json.txt)
     const singleLine = lines[0].trim();
 
-    // 按字面值的 \n 分割，但要注意不要分割 JSON 字符串内的 \n
+    // Split by literal \n, but be careful not to split \n within JSON strings
     let jsonArray: string[] = [];
     let current = '';
     let inString = false;
@@ -99,13 +99,13 @@ function cleanRawJsonLines(jsonString: string): string[] {
         continue;
       }
 
-      // 如果不在字符串内，遇到 \n 就分割
+      // If not within string and encounter \n, split here
       if (!inString && char === '\\' && i + 1 < singleLine.length && singleLine[i + 1] === 'n') {
         if (current.trim()) {
           jsonArray.push(current.trim());
         }
         current = '';
-        i++; // 跳过 'n'
+        i++; // Skip 'n'
         continue;
       }
 
@@ -116,13 +116,13 @@ function cleanRawJsonLines(jsonString: string): string[] {
       jsonArray.push(current.trim());
     }
 
-    // 现在处理提取出的每一行
+    // Now process each extracted line
     for (const jsonLine of jsonArray) {
       const processedLines = processJsonLine(jsonLine);
       cleanedLines.push(...processedLines);
     }
   } else {
-    // 处理多行情况
+    // Handle multi-line case
     for (const line of lines) {
       const processedLines = processJsonLine(line);
       cleanedLines.push(...processedLines);
@@ -133,18 +133,18 @@ function cleanRawJsonLines(jsonString: string): string[] {
 }
 
 /**
- * 处理单个 JSON 行
+ * Process individual JSON line
  */
 function processJsonLine(line: string): string[] {
   line = line.trim();
   if (!line) return [];
 
-  // 如果行以数字开头（像文件中的 "1→"），移除行号前缀
+  // If line starts with number (like "1→" in file), remove line number prefix
   line = line.replace(/^\d+→/, '');
 
-  // 如果行包含多个 JSON 对象（可能由于日志格式问题），尝试分割
+  // If line contains multiple JSON objects (possibly due to log format issues), try to split
   if (line.includes('}{')) {
-    // 在 }{ 之间插入换行符
+    // Insert newline between }{
     line = line.replace(/}{/g, '}\n{');
     const subLines = line.split('\n');
     const result: string[] = [];
@@ -156,12 +156,12 @@ function processJsonLine(line: string): string[] {
     }
     return result;
   } else {
-    // 确保行以 { 或 [ 开始
+    // Ensure line starts with { or [
     if ((line.startsWith('{') && line.endsWith('}')) ||
         (line.startsWith('[') && line.endsWith(']'))) {
       return [line];
     } else if (line.includes('{') && line.includes('}')) {
-      // 尝试提取行中的 JSON 部分
+      // Try to extract JSON part from the line
       const match = line.match(/(\{.*\})/);
       if (match) {
         return [match[1]];
@@ -173,14 +173,14 @@ function processJsonLine(line: string): string[] {
 }
 
 /**
- * 解析 JSON Lines 格式的数据
+ * Parse JSON Lines format data
  */
 function parseJsonLines(jsonString: string): ParsedJsonResult {
   try {
-    // 首先尝试使用清理函数处理原始数据
+    // First try using cleaning function to process raw data
     const cleanedLines = cleanRawJsonLines(jsonString);
 
-    // 如果清理成功，使用清理后的行
+    // If cleaning succeeds, use cleaned lines
     if (cleanedLines.length > 0) {
       const parsedLines = [];
       for (const line of cleanedLines) {
@@ -189,7 +189,7 @@ function parseJsonLines(jsonString: string): ParsedJsonResult {
           const parsed = JSON.parse(fixedLine);
           parsedLines.push(parsed);
         } catch (lineError) {
-          // 如果某一行解析失败，记录但继续处理其他行
+          // If a line fails to parse, log but continue processing other lines
           console.warn('Failed to parse line:', line, lineError);
         }
       }
@@ -203,7 +203,7 @@ function parseJsonLines(jsonString: string): ParsedJsonResult {
       }
     }
 
-    // 如果清理失败，回退到原始方法
+    // If cleaning fails, fallback to original method
     const lines = jsonString.trim().split('\n').filter(line => line.trim());
     const parsedLines = [];
 
@@ -215,11 +215,11 @@ function parseJsonLines(jsonString: string): ParsedJsonResult {
           const parsed = JSON.parse(fixedLine);
           parsedLines.push(parsed);
         } catch (lineError) {
-          // 尝试更强的修复逻辑
+          // Try stronger fix logic
           try {
-            // 移除可能的前缀
+            // Remove possible prefix
             let cleanLine = trimmedLine.replace(/^\d+→/, '');
-            // 提取 JSON 部分
+            // Extract JSON part
             const jsonMatch = cleanLine.match(/(\{[^{}]*\})/);
             if (jsonMatch) {
               const fixedLine = attemptJsonFix(jsonMatch[1]);
@@ -227,7 +227,7 @@ function parseJsonLines(jsonString: string): ParsedJsonResult {
               parsedLines.push(parsed);
             }
           } catch (fallbackError) {
-            // 如果还是失败，跳过这一行
+            // If still fails, skip this line
           }
         }
       }
@@ -244,19 +244,19 @@ function parseJsonLines(jsonString: string): ParsedJsonResult {
     return {
       success: false,
       data: null,
-      error: `JSON Lines 解析失败: 未能成功解析任何 JSON 行`
+      error: `JSON Lines parsing failed: Could not successfully parse any JSON lines`
     };
   } catch (error) {
     return {
       success: false,
       data: null,
-      error: `JSON Lines 解析失败: ${error instanceof Error ? error.message : '未知错误'}`
+      error: `JSON Lines parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
   }
 }
 
 /**
- * 解析普通 JSON 格式的数据
+ * Parse regular JSON format data
  */
 function parseRegularJson(jsonString: string): ParsedJsonResult {
   try {
@@ -272,13 +272,13 @@ function parseRegularJson(jsonString: string): ParsedJsonResult {
     return {
       success: false,
       data: null,
-      error: `JSON 解析失败: ${error instanceof Error ? error.message : '未知错误'}`
+      error: `JSON parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
   }
 }
 
 /**
- * 从文本中提取所有可能的 JSON 对象（宽松模式）
+ * Extract all possible JSON objects from text (lenient mode)
  */
 function extractJsonObjects(text: string): string[] {
   const jsonObjects: string[] = [];
@@ -312,7 +312,7 @@ function extractJsonObjects(text: string): string[] {
     if (!inString) {
       if (char === '{') {
         if (braceCount === 0 && bracketCount === 0 && current.trim()) {
-          // 如果之前有非空内容，清空当前
+          // If there was previous non-empty content, clear current
           current = '';
         }
         braceCount++;
@@ -322,7 +322,7 @@ function extractJsonObjects(text: string): string[] {
         current += char;
 
         if (braceCount === 0 && bracketCount === 0) {
-          // 找到完整的 JSON 对象
+          // Found complete JSON object
           const trimmed = current.trim();
           if (trimmed && (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
             jsonObjects.push(trimmed);
@@ -340,7 +340,7 @@ function extractJsonObjects(text: string): string[] {
         current += char;
 
         if (braceCount === 0 && bracketCount === 0) {
-          // 找到完整的 JSON 数组
+          // Found complete JSON array
           const trimmed = current.trim();
           if (trimmed && (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
             jsonObjects.push(trimmed);
@@ -359,26 +359,26 @@ function extractJsonObjects(text: string): string[] {
 }
 
 /**
- * 智能解析 JSON 数据，支持 JSON 和 JSON Lines 格式
+ * Smart parse JSON data, supporting both JSON and JSON Lines formats
  */
 export function parseJson(input: string): ParsedJsonResult {
   if (!input || !input.trim()) {
     return {
       success: false,
       data: null,
-      error: '输入不能为空'
+      error: 'Input cannot be empty'
     };
   }
 
   const trimmedInput = input.trim();
 
-  // 首先尝试普通 JSON（优先单个对象）
+  // First try regular JSON (prioritize single object)
   const regularJsonResult = parseRegularJson(trimmedInput);
   if (regularJsonResult.success) {
     return regularJsonResult;
   }
 
-  // 尝试提取 JSON 对象（宽松模式）
+  // Try to extract JSON objects (lenient mode)
   const extractedObjects = extractJsonObjects(trimmedInput);
   if (extractedObjects.length > 0) {
     const parsedObjects = [];
@@ -389,7 +389,7 @@ export function parseJson(input: string): ParsedJsonResult {
         const parsed = JSON.parse(fixed);
         parsedObjects.push(parsed);
       } catch (error) {
-        // 跳过无法解析的对象
+        // Skip objects that cannot be parsed
         console.warn('Failed to parse extracted JSON:', jsonObj.substring(0, 100));
       }
     }
@@ -403,7 +403,7 @@ export function parseJson(input: string): ParsedJsonResult {
     }
   }
 
-  // 检查是否是 JSON Lines 格式
+  // Check if it's JSON Lines format
   const lines = trimmedInput.split('\n').filter(line => line.trim());
   if (lines.length > 1) {
     const jsonLinesResult = parseJsonLines(trimmedInput);
@@ -415,6 +415,6 @@ export function parseJson(input: string): ParsedJsonResult {
   return {
     success: false,
     data: null,
-    error: '无法解析输入，请检查 JSON 格式是否正确'
+    error: 'Unable to parse input, please check if JSON format is correct'
   };
 }

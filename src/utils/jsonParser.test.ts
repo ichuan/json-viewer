@@ -61,7 +61,7 @@ describe('jsonParser', () => {
     const result = parseJson(input);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe('输入不能为空');
+    expect(result.error).toBe('Input cannot be empty');
   });
 
   test('should handle whitespace only input', () => {
@@ -69,7 +69,7 @@ describe('jsonParser', () => {
     const result = parseJson(input);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe('输入不能为空');
+    expect(result.error).toBe('Input cannot be empty');
   });
 
   test('should handle invalid JSON', () => {
@@ -77,7 +77,7 @@ describe('jsonParser', () => {
     const result = parseJson(input);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('无法解析输入');
+    expect(result.error).toContain('Unable to parse input');
   });
 
   test('should handle null and undefined values', () => {
