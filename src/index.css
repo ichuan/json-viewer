@@ -11,3 +11,399 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Layout styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #f5f5f5;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.left-panel,
+.right-panel {
+  width: 50%;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.left-panel {
+  border-right: 1px solid #e5e7eb;
+}
+
+/* Header styles */
+.header {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.header-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 64px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-text {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #111827;
+}
+
+/* Footer styles */
+.footer {
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.footer-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px;
+  text-align: center;
+}
+
+.footer-content p {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 4px 0;
+}
+
+/* Input styles */
+.input-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.input-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.input-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.input-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.clear-button {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-button:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.clear-button:active {
+  background-color: #f3f4f6;
+  transform: translateY(0.5px);
+}
+
+.textarea-wrapper {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  height: 100%;
+}
+
+.json-textarea {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: inherit;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.875rem;
+  padding: 16px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+/* Preview styles */
+.preview-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.json-lines-badge {
+  font-size: 0.75rem;
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.copy-button {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.copy-button:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.copy-button:active {
+  background-color: #f3f4f6;
+  transform: translateY(0.5px);
+}
+
+.copy-button.success {
+  color: #059669;
+  border-color: #059669;
+  background-color: #f0fdf4;
+}
+
+.preview-scrollarea {
+  flex: 1;
+  position: relative;
+}
+
+.preview-content {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.875rem;
+  background-color: white;
+  border: none;
+  padding: 16px;
+  min-height: 100%;
+}
+
+/* Radix UI ScrollArea styles */
+.json-scrollarea {
+  width: 100%;
+  height: 100%;
+  background-color: #f9fafb;
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.json-viewport {
+  width: 100%;
+  height: 100%;
+}
+
+.json-scrollbar {
+  background-color: #f3f4f6;
+  transition: background-color 150ms;
+}
+
+.json-scrollbar:hover {
+  background-color: #e5e7eb;
+}
+
+.json-scrollbar:active {
+  background-color: #d1d5db;
+}
+
+.json-scrollbar.orientation-vertical {
+  width: 10px;
+}
+
+.json-scrollbar.orientation-horizontal {
+  height: 10px;
+}
+
+/* Ensure ScrollArea thumb is visible */
+.json-scrollbar[data-radix-scroll-area-scrollbar] {
+  background-color: #d1d5db;
+}
+
+.json-scrollbar[data-radix-scroll-area-scrollbar]:hover {
+  background-color: #9ca3af;
+}
+
+.json-corner {
+  background-color: #f3f4f6;
+}
+
+/* Error styles */
+.error-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.error-box {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 512px;
+}
+
+.error-content {
+  display: flex;
+  align-items: flex-start;
+}
+
+.error-icon {
+  width: 20px;
+  height: 20px;
+  color: #f87171;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.error-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #991b1b;
+  margin-bottom: 4px;
+}
+
+.error-message {
+  font-size: 0.875rem;
+  color: #b91c1c;
+}
+
+/* JSON syntax highlighting */
+.json-null {
+  color: #6b7280;
+}
+
+.json-undefined {
+  color: #6b7280;
+}
+
+.json-string {
+  color: #059669;
+}
+
+.json-number {
+  color: #2563eb;
+}
+
+.json-boolean {
+  color: #7c3aed;
+}
+
+.json-property {
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.json-bracket {
+  color: #4b5563;
+}
+
+.json-value {
+  padding-left: 16px;
+  border-left: 1px solid #e5e7eb;
+  margin-left: 8px;
+}
+
+.json-item {
+  margin-bottom: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .left-panel,
+  .right-panel {
+    flex: 1;
+    height: 50vh;
+  }
+
+  .left-panel {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+}

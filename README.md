@@ -1,46 +1,157 @@
-# Getting Started with Create React App
+# JSON Viewer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+一个纯静态的 JSON 数据预览工具，支持实时解析、自动修复和美化显示。
 
-## Available Scripts
+## ✨ 特性
 
-In the project directory, you can run:
+- **实时预览**: 输入 JSON 数据时自动在右侧显示结构化预览
+- **智能修复**: 自动修复常见的 JSON 格式问题（如尾随逗号、未引号键名等）
+- **JSON Lines 支持**: 支持按换行分割的 JSON Lines 格式数据
+- **语法高亮**: 不同数据类型使用不同颜色显示
+- **响应式设计**: 适配桌面和移动设备
+- **纯静态构建**: 可直接部署到 nginx、Caddy 等静态文件服务器
 
-### `npm start`
+## 🚀 快速开始
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### 安装依赖
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```bash
+npm install
+```
 
-### `npm test`
+### 开发模式
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm start
+```
 
-### `npm run build`
+打开 [http://localhost:3000](http://localhost:3000) 查看应用。
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 构建生产版本
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+npm run build
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+构建文件将输出到 `build` 目录，可直接部署到任何静态文件服务器。
 
-### `npm run eject`
+### 运行测试
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```bash
+npm test
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📖 使用说明
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### 支持的 JSON 格式
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+1. **标准 JSON**:
+   ```json
+   {"name": "张三", "age": 30, "hobbies": ["阅读", "游泳"]}
+   ```
 
-## Learn More
+2. **JSON Lines** (每行一个 JSON 对象):
+   ```
+   {"name": "张三", "age": 30}
+   {"name": "李四", "age": 25}
+   {"name": "王五", "age": 35}
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+3. **自动修复功能**:
+   - 尾随逗号: `{"key": "value",}` → `{"key": "value"}`
+   - 未引号键名: `{key: "value"}` → `{"key": "value"}`
+   - 单引号: `{'key': 'value'}` → `{"key": "value"}`
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 界面功能
+
+- **左侧输入区**: 粘贴或输入 JSON 数据
+- **右侧预览区**: 实时显示结构化预览
+- **清空按钮**: 一键清空输入内容
+- **状态显示**: 显示字符数和行数
+- **错误提示**: JSON 格式错误时显示详细错误信息
+
+## 🏗️ 技术栈
+
+- **React 18**: 用户界面框架
+- **TypeScript**: 类型安全的 JavaScript
+- **CSS**: 自定义样式，响应式设计
+- **Create React App**: 构建工具
+
+## 📁 项目结构
+
+```
+src/
+├── components/          # React 组件
+│   ├── Header.tsx      # 头部导航
+│   ├── Footer.tsx      # 底部版权
+│   ├── JsonInput.tsx   # JSON 输入组件
+│   └── JsonPreview.tsx # JSON 预览组件
+├── utils/              # 工具函数
+│   ├── jsonParser.ts   # JSON 解析和修复
+│   └── jsonParser.test.ts # 单元测试
+├── App.tsx            # 主应用组件
+├── App.test.tsx       # 应用测试
+└── index.css          # 全局样式
+```
+
+## 🚀 部署
+
+### 使用 nginx
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /path/to/build;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+### 使用 Caddy
+
+```
+your-domain.com {
+    root * /path/to/build
+    file_server
+    try_files {path} /index.html
+}
+```
+
+### 使用 Vercel
+
+```bash
+npm install -g vercel
+vercel --prod
+```
+
+## 🧪 测试
+
+项目包含完整的测试套件：
+
+- **单元测试**: JSON 解析器功能测试
+- **组件测试**: React 组件行为测试
+- **集成测试**: 应用整体功能测试
+
+运行测试：
+
+```bash
+npm test
+```
+
+查看测试覆盖率：
+
+```bash
+npm test -- --coverage
+```
+
+## 📄 许可证
+
+MIT License
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
