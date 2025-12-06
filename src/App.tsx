@@ -1,17 +1,53 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { JsonInput } from './components/JsonInput';
 import { JsonPreview } from './components/JsonPreview';
 import { parseJson } from './utils/jsonParser';
 
+// Theme type
+export type Theme = 'light' | 'dark';
+
+// Theme context
+export const ThemeContext = React.createContext<{
+  theme: Theme;
+  toggleTheme: () => void;
+}>({
+  theme: 'light',
+  toggleTheme: () => {},
+});
+
 const App: React.FC = () => {
   const [jsonInput, setJsonInput] = useState<string>('');
   const [parsedResult, setParsedResult] = useState(parseJson(''));
+  const [parseTime, setParseTime] = useState<number>(0);
+  const [leftPanelWidth, setLeftPanelWidth] = useState<number>(50);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Theme state
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem('json-viewer-theme');
+    if (saved === 'dark' || saved === 'light') return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('json-viewer-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  }, []);
 
   // Optimize parse function with useCallback
   const parseJsonCallback = useCallback((input: string) => {
+    const startTime = performance.now();
     const result = parseJson(input);
+    const endTime = performance.now();
+    setParseTime(endTime - startTime);
     setParsedResult(result);
   }, []);
 
@@ -24,27 +60,73 @@ const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, [jsonInput, parseJsonCallback]);
 
+  // Resizer drag handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !containerRef.current) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+      setLeftPanelWidth(Math.min(Math.max(newWidth, 20), 80));
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isDragging]);
+
+  // Calculate JSON size
+  const jsonSize = new Blob([jsonInput]).size;
+
   return (
-    <div className="app">
-      <Header />
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <div className={`app ${theme}`}>
+        <Header />
 
-      <main className="main-content">
-        {/* Left input area */}
-        <div className="left-panel">
-          <JsonInput
-            value={jsonInput}
-            onChange={setJsonInput}
-          />
-        </div>
+        <main className="main-content" ref={containerRef}>
+          {/* Left input area */}
+          <div className="left-panel" style={{ width: `calc(${leftPanelWidth}% - 2px)` }}>
+            <JsonInput
+              value={jsonInput}
+              onChange={setJsonInput}
+            />
+          </div>
 
-        {/* Right preview area */}
-        <div className="right-panel">
-          <JsonPreview result={parsedResult} />
-        </div>
-      </main>
+          {/* Resizable divider */}
+          <div
+            className={`resizer ${isDragging ? 'active' : ''}`}
+            onMouseDown={handleMouseDown}
+          >
+            <div className="resizer-line" />
+          </div>
 
-      <Footer />
-    </div>
+          {/* Right preview area */}
+          <div className="right-panel" style={{ width: `calc(${100 - leftPanelWidth}% - 2px)` }}>
+            <JsonPreview result={parsedResult} />
+          </div>
+        </main>
+
+        <Footer parseTime={parseTime} jsonSize={jsonSize} lineCount={jsonInput.split('\n').length} />
+      </div>
+    </ThemeContext.Provider>
   );
 };
 

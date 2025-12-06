@@ -112,7 +112,7 @@ export const JsonInput: React.FC<JsonInputProps> = ({ value, onChange }) => {
           position: 'relative',
           minHeight: 0,
           overflow: 'hidden',
-          backgroundColor: 'white'
+          backgroundColor: 'var(--bg-primary)'
         }}
       >
         <div
@@ -130,15 +130,16 @@ export const JsonInput: React.FC<JsonInputProps> = ({ value, onChange }) => {
             {/* Line number column */}
             <div
               ref={lineNumberRef}
+              className="input-line-numbers"
               style={{
                 width: `${lineNumberWidth * 0.6 + 1}em`,
-                backgroundColor: '#f8fafc',
-                borderRight: '1px solid #e2e8f0',
+                backgroundColor: 'var(--bg-tertiary)',
+                borderRight: '1px solid var(--border-color)',
                 padding: '16px 8px',
                 fontFamily: 'SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace',
-                fontSize: '0.875rem',
+                fontSize: '0.8rem',
                 lineHeight: '1.5',
-                color: '#64748b',
+                color: 'var(--text-muted)',
                 textAlign: 'right',
                 userSelect: 'none',
                 flexShrink: 0,
@@ -180,9 +181,9 @@ export const JsonInput: React.FC<JsonInputProps> = ({ value, onChange }) => {
                 resize: 'none',
                 background: 'transparent',
                 fontFamily: 'SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace',
-                fontSize: '0.875rem',
-                color: 'inherit',
-                padding: '16px 16px 16px 24px',
+                fontSize: '0.8rem',
+                color: 'var(--text-primary)',
+                padding: '16px 16px 16px 16px',
                 boxSizing: 'border-box',
                 lineHeight: '1.5',
                 overflow: 'auto',
