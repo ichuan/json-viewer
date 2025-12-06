@@ -1,102 +1,110 @@
 # JSON Viewer
 
-一个纯静态的 JSON 数据预览工具，支持实时解析、自动修复和美化显示。
+A static JSON data preview tool with real-time parsing, auto-fix, and beautified display.
 
-## ✨ 特性
+## ✨ Features
 
-- **实时预览**: 输入 JSON 数据时自动在右侧显示结构化预览
-- **智能修复**: 自动修复常见的 JSON 格式问题（如尾随逗号、未引号键名等）
-- **JSON Lines 支持**: 支持按换行分割的 JSON Lines 格式数据
-- **语法高亮**: 不同数据类型使用不同颜色显示
-- **响应式设计**: 适配桌面和移动设备
-- **纯静态构建**: 可直接部署到 nginx、Caddy 等静态文件服务器
+- **Real-time Preview**: Automatically displays structured preview as you input JSON data
+- **Smart Fix**: Auto-fixes common JSON format issues (trailing commas, unquoted keys, etc.)
+- **JSON Lines Support**: Supports newline-delimited JSON Lines format
+- **Syntax Highlighting**: Different colors for different data types
+- **Responsive Design**: Works on desktop and mobile devices
+- **Static Build**: Can be deployed to nginx, Caddy, or any static file server
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 安装依赖
+### Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 开发模式
+### Development Mode
 
 ```bash
 npm start
 ```
 
-打开 [http://localhost:3000](http://localhost:3000) 查看应用。
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-### 构建生产版本
+### Build for Production
 
 ```bash
 npm run build
 ```
 
-构建文件将输出到 `build` 目录，可直接部署到任何静态文件服务器。
+Build output will be in the `build` directory, ready for deployment to any static file server.
 
-### 运行测试
+### Run Tests
 
 ```bash
 npm test
 ```
 
-## 📖 使用说明
+## 📖 Usage
 
-### 支持的 JSON 格式
+### Supported JSON Formats
 
-1. **标准 JSON**:
+1. **Standard JSON**:
    ```json
-   {"name": "张三", "age": 30, "hobbies": ["阅读", "游泳"]}
+   {"name": "John", "age": 30, "hobbies": ["reading", "swimming"]}
    ```
 
-2. **JSON Lines** (每行一个 JSON 对象):
+2. **JSON Lines** (one JSON object per line):
    ```
-   {"name": "张三", "age": 30}
-   {"name": "李四", "age": 25}
-   {"name": "王五", "age": 35}
+   {"name": "John", "age": 30}
+   {"name": "Jane", "age": 25}
+   {"name": "Bob", "age": 35}
    ```
 
-3. **自动修复功能**:
-   - 尾随逗号: `{"key": "value",}` → `{"key": "value"}`
-   - 未引号键名: `{key: "value"}` → `{"key": "value"}`
-   - 单引号: `{'key': 'value'}` → `{"key": "value"}`
+3. **Auto-fix Capabilities**:
+   - Trailing commas: `{"key": "value",}` → `{"key": "value"}`
+   - Unquoted keys: `{key: "value"}` → `{"key": "value"}`
+   - Single quotes: `{'key': 'value'}` → `{"key": "value"}`
 
-### 界面功能
+### Interface Features
 
-- **左侧输入区**: 粘贴或输入 JSON 数据
-- **右侧预览区**: 实时显示结构化预览
-- **清空按钮**: 一键清空输入内容
-- **状态显示**: 显示字符数和行数
-- **错误提示**: JSON 格式错误时显示详细错误信息
+- **Left Input Area**: Paste or type JSON data
+- **Right Preview Area**: Real-time structured preview
+- **Clear Button**: One-click clear input
+- **Status Display**: Shows character and line count
+- **Error Messages**: Displays detailed error info for invalid JSON
 
-## 🏗️ 技术栈
+## 🏗️ Tech Stack
 
-- **React 18**: 用户界面框架
-- **TypeScript**: 类型安全的 JavaScript
-- **CSS**: 自定义样式，响应式设计
-- **Create React App**: 构建工具
+- **React 19**: UI framework
+- **TypeScript**: Type-safe JavaScript
+- **CSS**: Custom styles with responsive design
+- **Create React App**: Build tooling
 
-## 📁 项目结构
+## 📁 Project Structure
 
 ```
 src/
-├── components/          # React 组件
-│   ├── Header.tsx      # 头部导航
-│   ├── Footer.tsx      # 底部版权
-│   ├── JsonInput.tsx   # JSON 输入组件
-│   └── JsonPreview.tsx # JSON 预览组件
-├── utils/              # 工具函数
-│   ├── jsonParser.ts   # JSON 解析和修复
-│   └── jsonParser.test.ts # 单元测试
-├── App.tsx            # 主应用组件
-├── App.test.tsx       # 应用测试
-└── index.css          # 全局样式
+├── components/          # React components
+│   ├── Header.tsx      # Header navigation
+│   ├── Footer.tsx      # Footer
+│   ├── JsonInput.tsx   # JSON input component
+│   └── JsonPreview.tsx # JSON preview component
+├── utils/              # Utility functions
+│   ├── jsonParser.ts   # JSON parsing and fixing
+│   └── jsonParser.test.ts # Unit tests
+├── App.tsx            # Main app component
+├── App.test.tsx       # App tests
+└── index.css          # Global styles
 ```
 
-## 🚀 部署
+## 🚀 Deployment
 
-### 使用 nginx
+### GitHub Pages (via GitHub Actions)
+
+This project is configured for automatic deployment to GitHub Pages. Simply push to the `main` branch and GitHub Actions will build and deploy automatically.
+
+1. Go to your repo **Settings** → **Pages**
+2. Set Source to **GitHub Actions**
+3. Push to `main` branch
+
+### Using nginx
 
 ```nginx
 server {
@@ -111,7 +119,7 @@ server {
 }
 ```
 
-### 使用 Caddy
+### Using Caddy
 
 ```
 your-domain.com {
@@ -121,37 +129,37 @@ your-domain.com {
 }
 ```
 
-### 使用 Vercel
+### Using Vercel
 
 ```bash
 npm install -g vercel
 vercel --prod
 ```
 
-## 🧪 测试
+## 🧪 Testing
 
-项目包含完整的测试套件：
+The project includes a complete test suite:
 
-- **单元测试**: JSON 解析器功能测试
-- **组件测试**: React 组件行为测试
-- **集成测试**: 应用整体功能测试
+- **Unit Tests**: JSON parser function tests
+- **Component Tests**: React component behavior tests
+- **Integration Tests**: Overall app functionality tests
 
-运行测试：
+Run tests:
 
 ```bash
 npm test
 ```
 
-查看测试覆盖率：
+View test coverage:
 
 ```bash
 npm test -- --coverage
 ```
 
-## 📄 许可证
+## 📄 License
 
 MIT License
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!
