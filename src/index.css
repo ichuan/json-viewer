@@ -398,6 +398,242 @@ html, body {
   color: #7c3aed;
 }
 
+/* New JSON Viewer styles (jv-*) */
+.jv-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.jv-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.jv-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jv-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.jv-badge {
+  font-size: 0.75rem;
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.jv-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.jv-btn {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.15s;
+}
+
+.jv-btn:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.jv-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.jv-copy-btn:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.jv-copy-btn.success {
+  color: #059669;
+  border-color: #059669;
+  background-color: #f0fdf4;
+}
+
+.jv-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: white;
+}
+
+.jv-tree {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  padding: 16px;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.jv-line {
+  display: flex;
+  align-items: flex-start;
+  min-height: 1.6em;
+  flex-wrap: wrap;
+}
+
+.jv-content {
+  padding-left: 20px;
+  border-left: 1px solid #e5e7eb;
+  margin-left: 6px;
+}
+
+.jv-closing {
+  margin-left: -20px;
+  padding-left: 0;
+}
+
+.jv-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.jv-trigger:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.jv-trigger svg {
+  width: 12px;
+  height: 12px;
+}
+
+.jv-key {
+  color: #1d4ed8;
+}
+
+.jv-index {
+  color: #6b7280;
+  font-size: 0.8em;
+}
+
+.jv-colon {
+  color: #4b5563;
+}
+
+.jv-bracket {
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.jv-preview {
+  color: #9ca3af;
+  font-style: italic;
+  margin: 0 4px;
+}
+
+.jv-string {
+  color: #059669;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.jv-number {
+  color: #2563eb;
+}
+
+.jv-boolean {
+  color: #7c3aed;
+}
+
+.jv-null {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.jv-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.jv-error-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.jv-error-box {
+  display: flex;
+  align-items: flex-start;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 512px;
+}
+
+.jv-error-icon {
+  width: 20px;
+  height: 20px;
+  color: #f87171;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.jv-error-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #991b1b;
+  margin: 0 0 4px 0;
+}
+
+.jv-error-msg {
+  font-size: 0.875rem;
+  color: #b91c1c;
+  margin: 0;
+}
+
 .json-property {
   color: #1d4ed8;
   font-weight: 500;
@@ -415,6 +651,66 @@ html, body {
 
 .json-item {
   margin-bottom: 4px;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Prevent horizontal scrolling */
+.preview-content {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Ensure inline collapsible elements don't cause overflow */
+.json-collapsible-trigger {
+  white-space: nowrap;
+}
+
+/* Prevent horizontal scroll in the preview area */
+.preview-scrollarea {
+  overflow-x: hidden !important;
+}
+
+/* New JSON viewer styles for standard format */
+.json-inline-trigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.json-inline-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.json-toggle {
+  color: #dc2626;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 4px;
+  margin-right: 4px;
+  min-width: 12px;
+  text-align: center;
+}
+
+.json-line {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.json-indent {
+  display: inline-block;
+  white-space: pre;
 }
 
 /* Responsive design */

@@ -1,343 +1,222 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import * as Collapsible from '@radix-ui/react-collapsible';
+import { ChevronRightIcon, ChevronDownIcon } from '@radix-ui/react-icons';
 import { ParsedJsonResult } from '../utils/jsonParser';
 
 interface JsonPreviewProps {
   result: ParsedJsonResult;
 }
 
+// 判断值是否可折叠
+const isExpandable = (value: unknown): boolean =>
+  (Array.isArray(value) && value.length > 0) ||
+  (typeof value === 'object' && value !== null && Object.keys(value).length > 0);
+
+// 获取预览文本
+const getPreviewText = (value: unknown): string => {
+  if (Array.isArray(value)) return `Array(${value.length})`;
+  if (typeof value === 'object' && value !== null) return `Object(${Object.keys(value).length})`;
+  return '';
+};
+
+// 原始值渲染
+const PrimitiveValue: React.FC<{ value: unknown }> = ({ value }) => {
+  if (value === null) return <span className="jv-null">null</span>;
+  if (value === undefined) return <span className="jv-null">undefined</span>;
+  if (typeof value === 'string') return <span className="jv-string">"{value}"</span>;
+  if (typeof value === 'number') return <span className="jv-number">{value}</span>;
+  if (typeof value === 'boolean') return <span className="jv-boolean">{String(value)}</span>;
+  return <span>{String(value)}</span>;
+};
+
+// 单个 JSON 节点
+const JsonNode: React.FC<{
+  keyName?: string | number;
+  value: unknown;
+  isLast: boolean;
+  defaultExpanded?: boolean;
+}> = ({ keyName, value, isLast, defaultExpanded = true }) => {
+  const [open, setOpen] = useState(defaultExpanded);
+  const expandable = isExpandable(value);
+  const isArray = Array.isArray(value);
+  const comma = isLast ? '' : ',';
+
+  // 渲染 key 部分
+  const keyPart = keyName !== undefined && (
+    <>
+      {typeof keyName === 'string' ? (
+        <span className="jv-key">"{keyName}"</span>
+      ) : (
+        <span className="jv-index">{keyName}</span>
+      )}
+      <span className="jv-colon">: </span>
+    </>
+  );
+
+  // 原始值直接渲染
+  if (!expandable) {
+    return (
+      <div className="jv-line">
+        {keyPart}
+        <PrimitiveValue value={value} />
+        {comma}
+      </div>
+    );
+  }
+
+  // 空数组/对象
+  const entries = isArray ? (value as unknown[]) : Object.entries(value as object);
+  if (entries.length === 0) {
+    return (
+      <div className="jv-line">
+        {keyPart}
+        <span className="jv-bracket">{isArray ? '[]' : '{}'}</span>
+        {comma}
+      </div>
+    );
+  }
+
+  return (
+    <Collapsible.Root open={open} onOpenChange={setOpen}>
+      <div className="jv-line">
+        <Collapsible.Trigger className="jv-trigger">
+          {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
+        </Collapsible.Trigger>
+        {keyPart}
+        <span className="jv-bracket">{isArray ? '[' : '{'}</span>
+        {!open && (
+          <>
+            <span className="jv-preview">{getPreviewText(value)}</span>
+            <span className="jv-bracket">{isArray ? ']' : '}'}</span>
+            {comma}
+          </>
+        )}
+      </div>
+      <Collapsible.Content className="jv-content">
+        {isArray
+          ? (value as unknown[]).map((item, idx) => (
+              <JsonNode
+                key={idx}
+                keyName={idx}
+                value={item}
+                isLast={idx === (value as unknown[]).length - 1}
+                defaultExpanded={defaultExpanded}
+              />
+            ))
+          : Object.entries(value as object).map(([k, v], idx, arr) => (
+              <JsonNode
+                key={k}
+                keyName={k}
+                value={v}
+                isLast={idx === arr.length - 1}
+                defaultExpanded={defaultExpanded}
+              />
+            ))}
+        <div className="jv-line jv-closing">
+          <span className="jv-bracket">{isArray ? ']' : '}'}</span>
+          {comma}
+        </div>
+      </Collapsible.Content>
+    </Collapsible.Root>
+  );
+};
+
+// 主组件
 export const JsonPreview: React.FC<JsonPreviewProps> = ({ result }) => {
   const [copySuccess, setCopySuccess] = useState(false);
-  const [collapsedPaths, setCollapsedPaths] = useState<Set<string>>(new Set());
+  const [expandKey, setExpandKey] = useState(0);
+  const [defaultExpanded, setDefaultExpanded] = useState(true);
+
+  const hasExpandable = useMemo(
+    () => result.success && isExpandable(result.data),
+    [result]
+  );
 
   const handleCopy = async () => {
     try {
-      const jsonString = JSON.stringify(result.data, null, 2);
-      await navigator.clipboard.writeText(jsonString);
+      await navigator.clipboard.writeText(JSON.stringify(result.data, null, 2));
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
-    } catch (error) {
-      console.error('Failed to copy:', error);
+    } catch (e) {
+      console.error('Copy failed:', e);
     }
   };
 
-  const toggleCollapsed = useCallback((path: string) => {
-    setCollapsedPaths(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(path)) {
-        newSet.delete(path);
-      } else {
-        newSet.add(path);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const getAllPaths = useCallback((obj: any, prefix = ''): string[] => {
-    const paths: string[] = [];
-
-    // Add root path if the root object is an object or array and not null
-    if ((typeof obj === 'object' && obj !== null) || Array.isArray(obj)) {
-      if (prefix) {
-        paths.push(prefix);
-      }
-    }
-
-    if (Array.isArray(obj)) {
-      obj.forEach((_, index) => {
-        const currentPath = prefix ? `${prefix}[${index}]` : `[${index}]`;
-        paths.push(currentPath);
-        if (typeof obj[index] === 'object' && obj[index] !== null) {
-          paths.push(...getAllPaths(obj[index], currentPath));
-        }
-      });
-    } else if (typeof obj === 'object' && obj !== null) {
-      Object.keys(obj).forEach(key => {
-        const currentPath = prefix ? `${prefix}.${key}` : key;
-        paths.push(currentPath);
-        if (typeof obj[key] === 'object' && obj[key] !== null) {
-          paths.push(...getAllPaths(obj[key], currentPath));
-        }
-      });
-    }
-
-    return paths;
-  }, []);
-
-  const allPaths = useMemo(() => getAllPaths(result.data, 'root'), [result.data, getAllPaths]);
-
   const expandAll = useCallback(() => {
-    setCollapsedPaths(new Set());
+    setDefaultExpanded(true);
+    setExpandKey(k => k + 1);
   }, []);
 
   const collapseAll = useCallback(() => {
-    setCollapsedPaths(new Set(allPaths));
-  }, [allPaths]);
+    setDefaultExpanded(false);
+    setExpandKey(k => k + 1);
+  }, []);
 
-  if (!result.success) {
-    // If it's empty input, show friendly prompt instead of error
-    if (result.error === 'Input cannot be empty') {
-      return (
-        <div style={{
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#9ca3af',
-          fontSize: '0.875rem',
-          fontFamily: 'SF Mono, Monaco, Cascadia Code, Roboto Mono, Consolas, Courier New, monospace'
-        }}>
-          Please paste or enter JSON data in the left input field...
-        </div>
-      );
-    }
-
-    // Show error message for other parsing errors
+  // 空输入提示
+  if (!result.success && result.error === 'Input cannot be empty') {
     return (
-      <div className="error-container">
-        <div className="error-box">
-          <div className="error-content">
-            <svg className="error-icon" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            <div>
-              <h3 className="error-title">Parse Error</h3>
-              <p className="error-message">{result.error}</p>
-            </div>
+      <div className="jv-empty">
+        Please paste or enter JSON data in the left input field...
+      </div>
+    );
+  }
+
+  // 错误展示
+  if (!result.success) {
+    return (
+      <div className="jv-error-container">
+        <div className="jv-error-box">
+          <svg className="jv-error-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          <div>
+            <h3 className="jv-error-title">Parse Error</h3>
+            <p className="jv-error-msg">{result.error}</p>
           </div>
         </div>
       </div>
     );
   }
 
-  const renderJsonValue = (value: any, depth: number = 0, path: string = ''): React.ReactElement => {
-    if (value === null) {
-      return <span className="json-null">null</span>;
-    }
-
-    if (value === undefined) {
-      return <span className="json-undefined">undefined</span>;
-    }
-
-    if (typeof value === 'string') {
-      return <span className="json-string">"{value}"</span>;
-    }
-
-    if (typeof value === 'number') {
-      return <span className="json-number">{value}</span>;
-    }
-
-    if (typeof value === 'boolean') {
-      return <span className="json-boolean">{value.toString()}</span>;
-    }
-
-    if (Array.isArray(value)) {
-      if (value.length === 0) {
-        return <span className="json-bracket">[]</span>;
-      }
-
-      const isCollapsed = collapsedPaths.has(path);
-
-      return (
-        <div>
-          <Collapsible.Root
-            open={!isCollapsed}
-            onOpenChange={() => toggleCollapsed(path)}
-          >
-            <Collapsible.Trigger asChild>
-              <button
-                className="json-collapsible-trigger"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  color: 'inherit',
-                  fontFamily: 'inherit',
-                  fontSize: 'inherit'
-                }}
-              >
-                {isCollapsed ?
-                  <span>
-                    <span className="json-bracket">[</span>
-                    <span style={{ color: '#059669', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginLeft: '4px', marginRight: '4px' }}>+</span>
-                    <span className="json-bracket">]</span>
-                  </span> :
-                  <span>
-                    <span className="json-bracket">[</span>
-                    <span style={{ color: '#dc2626', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginLeft: '4px', marginRight: '4px' }}>−</span>
-                  </span>
-                }
-              </button>
-            </Collapsible.Trigger>
-
-            <Collapsible.Content>
-              <div className="json-value" style={{ marginLeft: '16px' }}>
-                {value.map((item, index) => (
-                  <div key={index} className="json-item">
-                    {renderJsonValue(item, depth + 1, path ? `${path}[${index}]` : `[${index}]`)}
-                    {index < value.length - 1 && <span className="json-bracket">,</span>}
-                  </div>
-                ))}
-                <span className="json-bracket">]</span>
-              </div>
-            </Collapsible.Content>
-          </Collapsible.Root>
-        </div>
-      );
-    }
-
-    if (typeof value === 'object') {
-      const keys = Object.keys(value);
-      if (keys.length === 0) {
-        return <span className="json-bracket">{"{}"}</span>;
-      }
-
-      const isCollapsed = collapsedPaths.has(path);
-
-      return (
-        <div>
-          <Collapsible.Root
-            open={!isCollapsed}
-            onOpenChange={() => toggleCollapsed(path)}
-          >
-            <Collapsible.Trigger asChild>
-              <button
-                className="json-collapsible-trigger"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  color: 'inherit',
-                  fontFamily: 'inherit',
-                  fontSize: 'inherit'
-                }}
-              >
-                {isCollapsed ?
-                  <span>
-                    <span className="json-bracket">{"{"}</span>
-                    <span style={{ color: '#059669', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginLeft: '4px', marginRight: '4px' }}>+</span>
-                    <span className="json-bracket">{"}"}</span>
-                  </span> :
-                  <span>
-                    <span className="json-bracket">{"{"}</span>
-                    <span style={{ color: '#dc2626', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginLeft: '4px', marginRight: '4px' }}>−</span>
-                  </span>
-                }
-              </button>
-            </Collapsible.Trigger>
-
-            <Collapsible.Content>
-              <div className="json-value" style={{ marginLeft: '16px' }}>
-                {keys.map((key, index) => (
-                  <div key={key} className="json-item">
-                    <span className="json-property">"{key}"</span>
-                    <span className="json-bracket">: </span>
-                    {renderJsonValue(value[key], depth + 1, path ? `${path}.${key}` : key)}
-                    {index < keys.length - 1 && <span className="json-bracket">,</span>}
-                  </div>
-                ))}
-                <span className="json-bracket">{"}"}</span>
-              </div>
-            </Collapsible.Content>
-          </Collapsible.Root>
-        </div>
-      );
-    }
-
-    return <span className="json-null">{String(value)}</span>;
-  };
+  const isJsonLines = result.isJsonLines && Array.isArray(result.data);
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div className="preview-header">
-        <div className="preview-title">
-          <span className="preview-label">
-            {result.isJsonLines ? 'JSON Lines' : 'JSON'}
-          </span>
-          {result.isJsonLines && (
-            <span className="json-lines-badge">
-              {Array.isArray(result.data) ? result.data.length : 0} lines
-            </span>
+    <div className="jv-wrapper">
+      <div className="jv-header">
+        <div className="jv-title">
+          <span className="jv-label">{isJsonLines ? 'JSON Lines' : 'JSON'}</span>
+          {isJsonLines && (
+            <span className="jv-badge">{(result.data as unknown[]).length} lines</span>
           )}
-          {allPaths.length > 0 && (
-            <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }}>
-              <button
-                onClick={expandAll}
-                className="collapse-button"
-                title="Expand All"
-                style={{
-                  background: 'none',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '4px',
-                  padding: '4px 8px',
-                  fontSize: '0.75rem',
-                  cursor: 'pointer',
-                  color: '#374151'
-                }}
-              >
-                Expand
-              </button>
-              <button
-                onClick={collapseAll}
-                className="collapse-button"
-                title="Collapse All"
-                style={{
-                  background: 'none',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '4px',
-                  padding: '4px 8px',
-                  fontSize: '0.75rem',
-                  cursor: 'pointer',
-                  color: '#374151'
-                }}
-              >
-                Collapse
-              </button>
+          {hasExpandable && (
+            <div className="jv-actions">
+              <button onClick={expandAll} className="jv-btn">Expand</button>
+              <button onClick={collapseAll} className="jv-btn">Collapse</button>
             </div>
           )}
         </div>
-        <button
-          onClick={handleCopy}
-          className="copy-button"
-          title="Copy formatted JSON"
-        >
+        <button onClick={handleCopy} className={`jv-copy-btn ${copySuccess ? 'success' : ''}`}>
           {copySuccess ? (
             <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20 6L9 17l-5-5" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20 6H9" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               Copied
             </>
           ) : (
             <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 4v16l-4-4m4 4H4" />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
               </svg>
               Copy
             </>
           )}
         </button>
       </div>
-
-      <div
-        className="preview-scrollarea"
-        style={{
-          flex: 1,
-          position: 'relative',
-          minHeight: 0,
-          overflow: 'auto',
-          backgroundColor: 'white'
-        }}
-      >
-        <div className="preview-content">
-          {renderJsonValue(result.data, 0, 'root')}
+      <div className="jv-scroll">
+        <div className="jv-tree" key={expandKey}>
+          <JsonNode value={result.data} isLast defaultExpanded={defaultExpanded} />
         </div>
       </div>
     </div>
