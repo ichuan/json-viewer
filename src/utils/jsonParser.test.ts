@@ -168,4 +168,35 @@ describe('jsonParser', () => {
       }
     });
   });
+
+  test('should handle terminal-wrapped JSON Lines with line breaks', () => {
+    // Simulates terminal output where long JSON lines are wrapped
+    const input = `{"event": "monitor.log.progress", "timestamp": "2025-12-06T17:22:16.805136Z", "data": {"current_stage": "requirements", "content": "test
+ message"}, "metadata": {"session_id": "sess_993c1db6"}}
+{"event": "monitor.log.success", "timestamp": "2025-12-06T17:22:36.958087Z", "data": {"content": "Consistency check passed", "current_stage": "requirements"},
+ "metadata": {"session_id": "sess_993c1db6"}}`;
+    const result = parseJson(input);
+
+    expect(result.success).toBe(true);
+    expect(result.isJsonLines).toBe(true);
+    expect(Array.isArray(result.data)).toBe(true);
+    expect(result.data).toHaveLength(2);
+    expect(result.data[0].event).toBe('monitor.log.progress');
+    expect(result.data[1].event).toBe('monitor.log.success');
+  });
+
+  test('should handle terminal-wrapped JSON with multiple continuation lines', () => {
+    const input = `{"event": "test", "data": {"very_long_field": "this is a very long value that would wrap in
+ a terminal window and continue on the next
+ line"}}
+{"event": "test2", "data": {"short": "value"}}`;
+    const result = parseJson(input);
+
+    expect(result.success).toBe(true);
+    expect(result.isJsonLines).toBe(true);
+    expect(Array.isArray(result.data)).toBe(true);
+    expect(result.data).toHaveLength(2);
+    expect(result.data[0].event).toBe('test');
+    expect(result.data[1].event).toBe('test2');
+  });
 });

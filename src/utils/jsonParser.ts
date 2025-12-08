@@ -60,9 +60,69 @@ function attemptJsonFix(jsonString: string): string {
 }
 
 /**
+ * Try to reconstruct JSON Lines from terminal-wrapped output
+ * Terminal output often wraps long lines and pads with spaces
+ */
+function reconstructTerminalWrappedJsonLines(jsonString: string): string[] | null {
+  const lines = jsonString.split(/\r?\n/);
+  if (lines.length < 2) return null;
+
+  const reconstructed: string[] = [];
+  let currentJson = '';
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) continue;
+
+    // Check if this line starts a new JSON object
+    if (trimmedLine.startsWith('{') && currentJson === '') {
+      currentJson = trimmedLine;
+    } else if (trimmedLine.startsWith('{') && currentJson !== '') {
+      // New JSON object starts, save the previous one
+      const merged = currentJson.replace(/\s+/g, ' ').trim();
+      if (merged.endsWith('}')) {
+        reconstructed.push(merged);
+      }
+      currentJson = trimmedLine;
+    } else if (currentJson !== '') {
+      // Continue appending to current JSON
+      currentJson += trimmedLine;
+    }
+  }
+
+  // Don't forget the last one
+  if (currentJson) {
+    const merged = currentJson.replace(/\s+/g, ' ').trim();
+    if (merged.endsWith('}')) {
+      reconstructed.push(merged);
+    }
+  }
+
+  // Validate: check if we got valid JSON objects
+  if (reconstructed.length === 0) return null;
+
+  // Quick validation: try to parse first and last
+  try {
+    JSON.parse(reconstructed[0]);
+    if (reconstructed.length > 1) {
+      JSON.parse(reconstructed[reconstructed.length - 1]);
+    }
+    return reconstructed;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Clean and process raw JSON Lines data copied from Python logs
  */
 function cleanRawJsonLines(jsonString: string): string[] {
+  // First try to reconstruct terminal-wrapped JSON Lines
+  const terminalWrapped = reconstructTerminalWrappedJsonLines(jsonString);
+  if (terminalWrapped && terminalWrapped.length > 0) {
+    return terminalWrapped;
+  }
+
   // First try to split by actual newlines
   let lines = jsonString.split(/\r?\n/);
   let cleanedLines: string[] = [];
