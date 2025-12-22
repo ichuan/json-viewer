@@ -199,4 +199,18 @@ describe('jsonParser', () => {
     expect(result.data[0].event).toBe('test');
     expect(result.data[1].event).toBe('test2');
   });
+
+  test('should handle JSON with trailing non-JSON content (separator lines)', () => {
+    // Real-world example: JSON followed by separator lines like "---"
+    const input = `{"event": "monitor.log.progress", "timestamp": "2025-12-22T07:40:02.036464Z", "data": {"current_stage": "architect", "content": "Tool use:\\nid:  call_61t1t0ns5eg\\nname:  Write\\ninput:  {'file_path': '/home/dev/tmp/test.js', 'content': \\"console.log('test');\\"}\\n-----------------------"}, "metadata": {"session_id": "sess_3d62f068"}}`;
+    const result = parseJson(input);
+
+    expect(result.success).toBe(true);
+    expect(result.data.event).toBe('monitor.log.progress');
+    expect(result.data.timestamp).toBe('2025-12-22T07:40:02.036464Z');
+    expect(result.data.data.current_stage).toBe('architect');
+    expect(result.data.data.content).toContain('Tool use:');
+    expect(result.data.data.content).toContain('-----------------------');
+    expect(result.data.metadata.session_id).toBe('sess_3d62f068');
+  });
 });

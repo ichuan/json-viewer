@@ -49,13 +49,6 @@ function attemptJsonFix(jsonString: string): string {
   // Fix unquoted keys
   fixed = fixed.replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":');
 
-  // Only attempt to fix single quotes to double quotes when needed (more conservative approach)
-  // Check if it might contain single-quoted strings (not single quotes within JSON strings)
-  if (!fixed.includes('"') && (fixed.includes("'") || fixed.includes("'") || fixed.includes("'"))) {
-    // Looks like JSON wrapped in single quotes, try to fix
-    fixed = fixed.replace(/'/g, '"');
-  }
-
   return fixed;
 }
 
@@ -339,6 +332,7 @@ function parseRegularJson(jsonString: string): ParsedJsonResult {
 
 /**
  * Extract all possible JSON objects from text (lenient mode)
+ * This function can handle JSON with trailing non-JSON content
  */
 function extractJsonObjects(text: string): string[] {
   const jsonObjects: string[] = [];
@@ -388,6 +382,7 @@ function extractJsonObjects(text: string): string[] {
             jsonObjects.push(trimmed);
           }
           current = '';
+          // Continue to look for more JSON objects (for JSON Lines format)
         }
       } else if (char === '[') {
         if (braceCount === 0 && bracketCount === 0 && current.trim()) {
@@ -432,7 +427,20 @@ export function parseJson(input: string): ParsedJsonResult {
 
   const trimmedInput = input.trim();
 
-  // First try regular JSON (prioritize single object)
+  // First, try to parse directly without any modifications
+  // This handles valid JSON that might look unusual (e.g., with single quotes in string values)
+  try {
+    const parsed = JSON.parse(trimmedInput);
+    return {
+      success: true,
+      data: parsed,
+      isJsonLines: false
+    };
+  } catch (directParseError) {
+    // Direct parse failed, continue with fix attempts
+  }
+
+  // Try regular JSON with fixes (prioritize single object)
   const regularJsonResult = parseRegularJson(trimmedInput);
   if (regularJsonResult.success) {
     return regularJsonResult;
