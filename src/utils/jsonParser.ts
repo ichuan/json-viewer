@@ -41,7 +41,7 @@ function safeHandleEscapes(jsonString: string): string {
 
     // If we're inside a string and encounter a real newline, escape it
     if (inString && (char === '\n' || char === '\r')) {
-      output += '\\' + 'n';
+      output += '\\n';
       // Skip \r if followed by \n
       if (char === '\r' && i + 1 < jsonString.length && jsonString[i + 1] === '\n') {
         i++;
