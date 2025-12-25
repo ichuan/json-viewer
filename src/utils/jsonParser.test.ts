@@ -213,4 +213,16 @@ describe('jsonParser', () => {
     expect(result.data.data.content).toContain('-----------------------');
     expect(result.data.metadata.session_id).toBe('sess_3d62f068');
   });
+
+  test('should handle JSON with Markdown code blocks containing backticks', () => {
+    // Real-world example: JSON containing Markdown with code blocks (backticks)
+    const input = '{"time": "2025-12-25T13:17:32.712214", "event": "result_message", "message": "", "data": {"subtype": "success", "is_error": false, "result": "现在让我回答您的问题：**为什么之前没有做运行测试？**\\n\\n## 问题分析\\n\\n之前的实现过程中存在以下问题：\\n\\n### 1. **只运行了单元测试，没有启动应用**\\n```bash\\nnpm test      #\\n✅ 运行了单元测试\\nnpm run build # ✅ 运行了构建\\n```\\n但我们**从来没有运行过**：\\n```bash\\nnpm run dev   # ❌ 没有启动开发服务器\\n```\\n\\n### 2. **缺少 React Router v7 的关键文件**\\nReact Router v7 Framework Mode **必须**要有 `app/routes/root.tsx` 文件，但我们在整个实现过程中都忽略了这一点。\\n\\n### 3. **package.json 包含了冲突的依赖**\\n- `react-scripts` (Create React App) 与 React Router v7 冲突\\n- 这导致 npm install 失败，但我们没有及时发现\\n\\n### 4. **为什么构建成功了但应用不能运行？**\\n因为：\\n- **构建**只检查 TypeScript 语法和模块解析\\n- **运行时错误**（如缺少 root.tsx）只有在浏览器中才能发现\\n- React Router 的 `useContext` 错误是运行时错误，不是构建时错误\\n\\n### 教训\\n\\n对于 **React Router v7 Framework Mode** 项目，应该：\\n\\n1. ✅ 创建项目时立即添加 `root.tsx`\\n2. ✅ 第一次提交前运行 `npm run dev` 测试\\n3. ✅ 确保 package.json 没有冲突的依赖（如 react-scripts）\\n4. ✅ 使用 `react-router dev` 而不是 `vite`\\n\\n现在应用应该可以正常\\n运行了。您可以运行：\\n\\n```bash\\nnpm run dev\\n```\\n\\n然后访问 http://localhost:5173 测试所有功能。", "usage": {"input_tokens": 177137, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 2081152, "output_tokens": 4455, "server_tool_use": {"web_search_requests": 0, "web_fetch_requests": 0}, "service_tier": "standard", "cache_creation": {"ephemeral_1h_input_tokens": 0, "ephemeral_5m_input_tokens": 0}}, "cost": 1.2441318000000001, "duration_ms": 222984}, "session_id": "a8bafda5-be18-4759-bc29-6f9f6fc54973"}';
+    const result = parseJson(input);
+
+    expect(result.success).toBe(true);
+    expect(result.data.event).toBe('result_message');
+    expect(result.data.data.result).toContain('```bash');
+    expect(result.data.data.result).toContain('npm test');
+    expect(result.data.data.usage.input_tokens).toBe(177137);
+  });
 });

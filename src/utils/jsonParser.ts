@@ -22,13 +22,50 @@ function safeHandleEscapes(jsonString: string): string {
     }
   }
 
-  // Only handle obvious Python log escapes (actual newlines, not within strings)
-  let result = jsonString;
+  // Handle actual newlines within JSON string values
+  // These are invalid in JSON and need to be escaped
+  let inString = false;
+  let prevChar = '';
+  let output = '';
 
-  // Only handle newlines at line start/end, not within strings
-  result = result.replace(/\r?\n/g, ' ');
+  for (let i = 0; i < jsonString.length; i++) {
+    const char = jsonString[i];
 
-  return result;
+    // Track if we're inside a string (not escaped quote)
+    if (char === '"' && prevChar !== '\\') {
+      inString = !inString;
+      output += char;
+      prevChar = char;
+      continue;
+    }
+
+    // If we're inside a string and encounter a real newline, escape it
+    if (inString && (char === '\n' || char === '\r')) {
+      output += '\\' + 'n';
+      // Skip \r if followed by \n
+      if (char === '\r' && i + 1 < jsonString.length && jsonString[i + 1] === '\n') {
+        i++;
+      }
+      prevChar = 'n';  // Not actually a char, but prevent treating next as escaped
+      continue;
+    }
+
+    // Outside strings, replace newlines with space
+    if (!inString && (char === '\n' || char === '\r')) {
+      output += ' ';
+      // Skip \r if followed by \n
+      if (char === '\r' && i + 1 < jsonString.length && jsonString[i + 1] === '\n') {
+        i++;
+      }
+      prevChar = ' ';
+      continue;
+    }
+
+    output += char;
+    prevChar = char;
+  }
+
+  return output;
 }
 
 /**
@@ -37,8 +74,8 @@ function safeHandleEscapes(jsonString: string): string {
 function attemptJsonFix(jsonString: string): string {
   let fixed = jsonString.trim();
 
-  // Remove comments
-  fixed = fixed.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  // Note: Do NOT remove comments here as it may incorrectly match URLs like http://
+  // Comment removal should only be done if we're certain the input contains actual comments
 
   // Use safe method to handle escape characters
   fixed = safeHandleEscapes(fixed);
@@ -472,11 +509,20 @@ export function parseJson(input: string): ParsedJsonResult {
   }
 
   // Check if it's JSON Lines format
+  // Only treat as JSON Lines if there are multiple non-empty lines AND the first line is a complete JSON object
   const lines = trimmedInput.split('\n').filter(line => line.trim());
   if (lines.length > 1) {
-    const jsonLinesResult = parseJsonLines(trimmedInput);
-    if (jsonLinesResult.success) {
-      return jsonLinesResult;
+    // Check if each line starts with { or [ (potential JSON objects)
+    const looksLikeJsonLines = lines.every(line => {
+      const trimmed = line.trim();
+      return trimmed.startsWith('{') || trimmed.startsWith('[');
+    });
+
+    if (looksLikeJsonLines) {
+      const jsonLinesResult = parseJsonLines(trimmedInput);
+      if (jsonLinesResult.success) {
+        return jsonLinesResult;
+      }
     }
   }
 
