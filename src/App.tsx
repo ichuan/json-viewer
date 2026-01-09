@@ -18,7 +18,10 @@ export const ThemeContext = React.createContext<{
 });
 
 const App: React.FC = () => {
-  const [jsonInput, setJsonInput] = useState<string>('');
+  const [jsonInput, setJsonInput] = useState<string>(() => {
+    const saved = localStorage.getItem('json-viewer-input');
+    return saved || '';
+  });
   const [parsedResult, setParsedResult] = useState(parseJson(''));
   const [parseTime, setParseTime] = useState<number>(0);
   const [leftPanelWidth, setLeftPanelWidth] = useState<number>(50);
@@ -42,6 +45,11 @@ const App: React.FC = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   }, []);
 
+  // Save input to localStorage
+  useEffect(() => {
+    localStorage.setItem('json-viewer-input', jsonInput);
+  }, [jsonInput]);
+
   // Optimize parse function with useCallback
   const parseJsonCallback = useCallback((input: string) => {
     const startTime = performance.now();
@@ -50,6 +58,14 @@ const App: React.FC = () => {
     setParseTime(endTime - startTime);
     setParsedResult(result);
   }, []);
+
+  // Parse initial saved input on mount
+  useEffect(() => {
+    if (jsonInput) {
+      parseJsonCallback(jsonInput);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount with initial saved value
 
   // Use debounce to optimize real-time preview
   useEffect(() => {
